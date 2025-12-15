@@ -20,7 +20,8 @@ function App() {
     };
 
     useEffect(() => {
-        init();
+        // Promise<void>이기 때무에 실패할 확율이 있음(초기화가 안될 가능성)
+        init().then(() => {});
     }, []);
 
     return (
