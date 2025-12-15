@@ -1,69 +1,14 @@
 import { Link, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
-import styled from "styled-components";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../firebase.ts";
-
-const Wrapper = styled.div`
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 420px;
-    padding: 50px 0;
-`;
+import { Button, ErrorText, Form, Input, Switcher, Title, Wrapper } from "../styles/AuthStyles.tsx";
 
 type FormValues = {
     name: string;
     email: string;
     password: string;
 };
-
-const Title = styled.h1`
-    font-size: 42px;
-`;
-
-const Form = styled.form`
-    margin-top: 50px;
-    margin-bottom: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-`;
-
-const Input = styled.input`
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: none;
-    font-size: 16px;
-`;
-
-const ErrorText = styled.span`
-    font-weight: 600;
-    color: tomato;
-`;
-
-const Switcher = styled.span`
-    margin-top: 20px;
-
-    a {
-        color: #1d9bf0;
-    }
-`;
-
-const Button = styled.button`
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    background-color: #1d9bf0;
-    color: white;
-    &:hover {
-        opacity: 0.8;
-    }
-`;
 
 function CreateAccount() {
     const navigate = useNavigate();
@@ -87,32 +32,33 @@ function CreateAccount() {
     });
 
     const onSubmit = async (data: FormValues) => {
-        // react-hook-form이 관리하고 있는 errors객체에  기록되어 있는 내용을 삭제해줌
+        // react-hook-form이 관리하고 있는 errors 객체에 기록되어 있는 내용을 삭제해줌
         clearErrors();
 
+        // firebase에 실질적으로 받은 input 내용들을 전달 해줘야 함
         try {
-            //firebase에서 관리하는 사용자 객체를 만들어서
+            // firebase에서 관리하는 사용자 객체를 만들어서
             const credentials = await createUserWithEmailAndPassword(
                 auth,
                 data.email,
                 data.password,
             );
 
-            // 그 객체를 통해 firebase 기록
+            // 그 객체를 통해 firebase에 기록
             await updateProfile(credentials.user, {
                 displayName: data.name,
             });
             navigate("/");
         } catch (e) {
             console.log(e);
-            setError("root", { message: "계정 생성에 실패하였습니다. " });
+            setError("root", { message: "계정 생성에 실패하였습니다."});
         }
     };
 
     return (
         <Wrapper>
             <Title>Join X</Title>
-            <Form>
+            <Form onSubmit={handleSubmit(onSubmit)}>
                 <Input
                     placeholder={"Name"}
                     required
