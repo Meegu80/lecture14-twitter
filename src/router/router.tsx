@@ -9,10 +9,9 @@ import ProtectedRoute from "./ProtectedRoute.tsx";
 const router = createBrowserRouter([
     {
         path: "/",
-
         element: (
             <ProtectedRoute>
-                <Layout />)
+                <Layout />
             </ProtectedRoute>
         ),
         children: [
