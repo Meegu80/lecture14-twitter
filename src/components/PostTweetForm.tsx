@@ -68,6 +68,7 @@ type TweetFormValues = {
 
 function PostTweetForm() {
     const navigate = useNavigate();
+
     const {
         register,
         handleSubmit,
@@ -91,16 +92,17 @@ function PostTweetForm() {
             // firestore에서 사용할 수 있는 규격에 맞춘 객체를 준비
             const tweet = {
                 tweet: data.tweet,
-                createdAt: new Date(),     // 생성시간
+                createdAt: new Date(), // 생성시간
                 username: user.displayName || "Anonymous",
                 userId: user.uid,
-            }
+            };
             // 그 객체를 firestore에 저장
             const doc = await addDoc(collection(db, "tweets"), tweet);
-            setValue("tweet","")
+
+            setValue("tweet", "");
+
+            // 원래는, 그 불러오는 부분만 재실행해서 Timeline 부분만 갱신해줘야 함
             navigate(0); // 새로고침
-
-
         } catch (e) {
             console.log(e);
         }

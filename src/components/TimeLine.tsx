@@ -58,7 +58,7 @@ function Timeline() {
     return (
         <Wrapper>
             {tweets.map((item, index) => {
-                return <Tweet key={index} item={item}/>;
+                return <Tweet key={index} item={item} />;
             })}
         </Wrapper>
     );

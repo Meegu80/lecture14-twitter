@@ -1,76 +1,68 @@
-import type { TweetType } from "./TimeLine.tsx";
-import { auth } from "../firebase.ts";
+import type { TweetType } from "./Timeline.tsx";
+import { auth, db } from "../firebase.ts";
 import styled from "styled-components";
-
-const Wrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 20px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-
-    &:hover {
-        border-color: rgba(255, 255, 255, 0.2);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    }
-`;
-
-const Username = styled.span`
-    font-weight: 600;
-    font-size: 16px;
-    color: #60a5fa;
-    letter-spacing: 0.3px;
-`;
-
-const TweetText = styled.p`
-    margin: 0;
-    font-size: 15px;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.9);
-    word-break: break-word;
-`;
-
-const DeleteButton = styled.button`
-    align-self: flex-end;
-    padding: 8px 16px;
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: rgba(239, 68, 68, 0.2);
-        border-color: rgba(239, 68, 68, 0.5);
-        transform: scale(1.05);
-    }
-
-    &:active {
-        transform: scale(0.98);
-    }
-`;
+import { deleteDoc, doc } from "firebase/firestore";
+import { useNavigate } from "react-router";
 
 type Props = {
     item: TweetType;
 };
 
+const Wrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border: 1px solid white;
+    border-radius: 15px;
+`;
+
+const Username = styled.span`
+    font-weight: 600;
+    font-size: 15px;
+`;
+
+const Text = styled.p`
+    margin: 10px 0;
+    font-size: 18px;
+`;
+
+const DeleteBtn = styled.button`
+    background-color: tomato;
+    color: white;
+    font-weight: 600;
+    border: 0;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+`;
+
 function Tweet({ item }: Props) {
+    const navigate = useNavigate();
+
     const user = auth.currentUser;
+
+    const onDelete = async () => {
+        // 사용자에게 삭제할건지를 재확인
+        const ok = confirm("정말 이 트윗을 삭제하실건가요?");
+        if (!ok) return;
+
+        try {
+            // 재확인 시 진짜 삭제한다면 firestore에서 삭제 처리
+            await deleteDoc(doc(db, "tweets", item.id));
+            // 이후 새로고침
+            navigate(0);
+        } catch (e) {
+            console.log(e);
+        }
+    };
 
     return (
         <Wrapper>
             <Username>{item.username}</Username>
-            <TweetText>{item.tweet}</TweetText>
+            <Text>{item.tweet}</Text>
             {/* 접속한 사용자와, 글 작성자가 동일할 때에는 삭제 버튼을 출력 */}
-            {user?.uid === item.userId && <DeleteButton>Delete</DeleteButton>}
+            {user?.uid === item.userId && <DeleteBtn onClick={onDelete}>Delete</DeleteBtn>}
         </Wrapper>
     );
 }
