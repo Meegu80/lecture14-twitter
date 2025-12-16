@@ -78,6 +78,10 @@ function PostTweetForm() {
         formState: { isSubmitting },
     } = useForm<TweetFormValues>();
 
+    // input type="file"은 옵션을 통해 여러개의 파일도 선택이 가능함
+    // 그래서 FileList 타입은 Array 형태인 것이고, 그 중 첫번째 파일을 선택해줘야 할 필요가 있음
+    // watch : react-hook-form과 연결되어져 있는 해당 input의 값이 변경될 때마다
+    // 그 변경된 값을 가져옴
     const fileList = watch("file");
     const file = fileList && fileList.length === 1 ? fileList[0] : null;
 
@@ -103,15 +107,25 @@ function PostTweetForm() {
             // 그 객체를 firestore에 저장
             const doc = await addDoc(collection(db, "tweets"), tweet);
 
-            if(data.file?.[0]){
-                // 파일을 업로드하게 되면 storage에서 주는 정보를
+            // 일단, 글을 DB에 씀
+            // 이후, 파일이 있다면 파일을 업로드함
+            // 이후, 파일을 업로드하고 얻은 파일 정보를 글에 업데이트 함
+
+            if (data.file?.[0]) {
+                // 파일을 storage에 어떻게 업로드 할 것인지를 준비
+                // ref: import { ref } from "firebase/storage";
                 const locationRef = ref(storage, `tweets/${user.uid}/${doc.id}`);
+                // 실제 업로드를 하고 그 결과 데이터를 result에 저장
                 const result = await uploadBytes(locationRef, data.file[0]);
+                // 업로드 된 파일의 URL 경로를 받아옴
                 const url = await getDownloadURL(result.ref);
 
-                await updateDoc(doc, {photo:url})
+                // 이렇게 업로드가 완료되고, 그 정보까지 받아서 URL을 마련을 해준 뒤, 그 URL을 방금 쓴 db에 업데이트 저장
+                await updateDoc(doc, { photo: url });
             }
+
             setValue("tweet", "");
+            setValue("file", null);
 
             // 원래는, 그 불러오는 부분만 재실행해서 Timeline 부분만 갱신해줘야 함
             navigate(0); // 새로고침
