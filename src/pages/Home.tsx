@@ -1,5 +1,6 @@
 import PostTweetForm from "../components/PostTweetForm.tsx";
 import styled from "styled-components";
+import TimeLine from "../components/TimeLine.tsx";
 
 const Wrapper = styled.div`
     display: flex;
@@ -11,7 +12,7 @@ function Home() {
     return (
         <Wrapper>
             <PostTweetForm />
-            <div>글이 나열되는 곳</div>
+            <TimeLine />
         </Wrapper>
     );
 }

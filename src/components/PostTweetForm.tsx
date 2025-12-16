@@ -1,5 +1,8 @@
 import styled from "styled-components";
 import { useForm } from "react-hook-form";
+import { auth, db } from "../firebase.ts";
+import { addDoc, collection } from "firebase/firestore";
+import { useNavigate } from "react-router";
 
 const Form = styled.form`
     display: flex;
@@ -64,6 +67,7 @@ type TweetFormValues = {
 };
 
 function PostTweetForm() {
+    const navigate = useNavigate();
     const {
         register,
         handleSubmit,
@@ -72,8 +76,34 @@ function PostTweetForm() {
         formState: { isSubmitting },
     } = useForm<TweetFormValues>();
 
-    const onSubmit = (data: TweetFormValues) => {
-        // 작성된 데이터를 firebase에 전달
+    const onSubmit = async (data: TweetFormValues) => {
+        // 작성된 데이터 + 이 글을 누가 작성했는가를 firebase에 전달
+        const user = auth.currentUser;
+
+        // auth.currentUser를 하게 되면 User | null 타입으로 반환됨
+        // 물론, ProtectedRoute를 통해 프로그램 내 논리로서 null은 없겠지만,
+        // 다른 파일에서 이뤄지는 일이기 때문에 자바스크립트 엔진은 알 수 없음
+        // 따라서 (그럴리는 없겠지만), user가 null일 때 return으로 선 처리 해줘서
+        // user의 타입을 User만 남도록 함
+        if (!user) return;
+
+        try {
+            // firestore에서 사용할 수 있는 규격에 맞춘 객체를 준비
+            const tweet = {
+                tweet: data.tweet,
+                createdAt: new Date(),     // 생성시간
+                username: user.displayName || "Anonymous",
+                userId: user.uid,
+            }
+            // 그 객체를 firestore에 저장
+            const doc = await addDoc(collection(db, "tweets"), tweet);
+            setValue("tweet","")
+            navigate(0); // 새로고침
+
+
+        } catch (e) {
+            console.log(e);
+        }
     };
 
     return (
