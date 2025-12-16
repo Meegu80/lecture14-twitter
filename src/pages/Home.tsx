@@ -1,6 +1,6 @@
 import PostTweetForm from "../components/PostTweetForm.tsx";
 import styled from "styled-components";
-import TimeLine from "../components/TimeLine.tsx";
+import TimeLine from "../components/Timeline.tsx";
 
 const Wrapper = styled.div`
     display: flex;

@@ -1,8 +1,9 @@
 import styled from "styled-components";
 import { useForm } from "react-hook-form";
-import { auth, db } from "../firebase.ts";
-import { addDoc, collection } from "firebase/firestore";
+import { auth, db, storage } from "../firebase.ts";
+import { addDoc, collection, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const Form = styled.form`
     display: flex;
@@ -77,6 +78,9 @@ function PostTweetForm() {
         formState: { isSubmitting },
     } = useForm<TweetFormValues>();
 
+    const fileList = watch("file");
+    const file = fileList && fileList.length === 1 ? fileList[0] : null;
+
     const onSubmit = async (data: TweetFormValues) => {
         // 작성된 데이터 + 이 글을 누가 작성했는가를 firebase에 전달
         const user = auth.currentUser;
@@ -99,6 +103,14 @@ function PostTweetForm() {
             // 그 객체를 firestore에 저장
             const doc = await addDoc(collection(db, "tweets"), tweet);
 
+            if(data.file?.[0]){
+                // 파일을 업로드하게 되면 storage에서 주는 정보를
+                const locationRef = ref(storage, `tweets/${user.uid}/${doc.id}`);
+                const result = await uploadBytes(locationRef, data.file[0]);
+                const url = await getDownloadURL(result.ref);
+
+                await updateDoc(doc, {photo:url})
+            }
             setValue("tweet", "");
 
             // 원래는, 그 불러오는 부분만 재실행해서 Timeline 부분만 갱신해줘야 함
@@ -121,7 +133,7 @@ function PostTweetForm() {
             <AttachFileButton
                 // htmlFor : 이 label이 바라보고 있는 input 요소의 id를 기재
                 htmlFor={"attachment"}>
-                Add Photo
+                {file ? "Photo Added" : "Add Photo"}
             </AttachFileButton>
             <AttachFileInput
                 id={"attachment"}

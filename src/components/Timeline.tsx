@@ -16,6 +16,7 @@ export type TweetType = {
     createdAt: number;
     userId: string;
     username: string;
+    photo?: string;
 };
 
 function Timeline() {
@@ -46,6 +47,7 @@ function Timeline() {
                 userId: data.userId,
                 username: data.username,
                 id: item.id,
+                photo: data.photo,
             };
         });
         setTweets(tweets);
